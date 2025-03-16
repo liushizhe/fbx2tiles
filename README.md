@@ -1,11 +1,13 @@
-# FBX to 3D Tiles Converter
+# 3D Model to 3D Tiles Converter
 
-这个工具可以将FBX格式的3D模型转换为3D Tiles格式，适用于3D地图应用和Web端3D可视化。
+这个工具可以将FBX、glTF、GLB格式的3D模型转换为3D Tiles格式，适用于3D地图应用和Web端3D可视化。
 
 ## 功能特点
 
-- 支持FBX格式的3D模型转换
+- 支持FBX、glTF、GLB格式的3D模型转换
 - 生成符合3D Tiles规范的输出文件
+- 支持LOD（Level of Detail）
+- 支持地理坐标定位
 - 简单易用的命令行接口
 
 ## 安装
