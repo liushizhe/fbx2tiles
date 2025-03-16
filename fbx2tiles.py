@@ -2,11 +2,12 @@
 # -*- coding: utf-8 -*-
 
 """
-FBX to 3D Tiles Converter
-This script converts FBX 3D models to 3D Tiles format for use in 3D mapping applications.
-It uses a two-step process:
-1. Convert FBX to glTF using FBX2glTF
-2. Convert glTF to 3D Tiles (B3DM) with LOD support and geographic positioning
+Model to 3D Tiles Converter
+This script converts 3D models (FBX, glTF) to 3D Tiles format for use in 3D mapping applications.
+It supports:
+1. FBX to 3D Tiles: Convert FBX to glTF using FBX2glTF, then to 3D Tiles
+2. glTF to 3D Tiles: Directly convert glTF to 3D Tiles
+Both with LOD support and geographic positioning
 """
 
 import os
@@ -23,15 +24,15 @@ from datetime import datetime
 import tempfile
 
 
-class FBX2Tiles:
-    """Main converter class for transforming FBX models to 3D Tiles format."""
+class Model2Tiles:
+    """Main converter class for transforming 3D models to 3D Tiles format."""
     
-    def __init__(self, input_file, output_dir, lod_levels=10, longitude=None, latitude=None, height=None, verbose=False):
+    def __init__(self, input_file, output_dir, lod_levels=3, longitude=None, latitude=None, height=None, verbose=False):
         """
         Initialize the converter with input and output paths.
         
         Args:
-            input_file (str): Path to input FBX file
+            input_file (str): Path to input 3D model file (FBX or glTF)
             output_dir (str): Directory to output 3D Tiles files
             lod_levels (int): Number of LOD levels to generate
             longitude (float): Longitude in degrees (WGS84)
@@ -67,8 +68,78 @@ class FBX2Tiles:
         if not os.path.exists(self.input_file):
             raise FileNotFoundError(f"Input file not found: {self.input_file}")
         
-        if not self.input_file.lower().endswith('.fbx'):
-            raise ValueError("Input file must be an FBX file")
+        # Determine input file type
+        self.input_type = self._get_input_type()
+    
+    def _get_input_type(self):
+        """Determine the type of input file based on extension."""
+        file_ext = os.path.splitext(self.input_file)[1].lower()
+        
+        if file_ext == '.fbx':
+            return 'fbx'
+        elif file_ext in ['.gltf', '.glb']:
+            return 'gltf'
+        else:
+            raise ValueError(f"Unsupported input file type: {file_ext}. Supported types are: .fbx, .gltf, .glb")
+    
+    def prepare_gltf(self):
+        """
+        Prepare glTF file for conversion to 3D Tiles.
+        This either converts FBX to glTF or copies existing glTF to the temp directory.
+        """
+        if self.verbose:
+            print(f"Preparing glTF file from {self.input_type.upper()} input: {self.input_file}")
+        
+        if self.input_type == 'fbx':
+            # Convert FBX to glTF
+            return self.convert_fbx_to_gltf()
+        elif self.input_type == 'gltf':
+            # Copy glTF file to temp directory
+            return self.copy_gltf_to_temp()
+        
+        return False
+    
+    def copy_gltf_to_temp(self):
+        """Copy glTF file to temp directory for processing."""
+        try:
+            if not os.path.exists(self.gltf_dir):
+                os.makedirs(self.gltf_dir)
+            
+            # If input is .glb, we need to convert it to .gltf
+            if self.input_file.lower().endswith('.glb'):
+                if self.verbose:
+                    print(f"Converting GLB to glTF: {self.input_file}")
+                
+                # TODO: Add GLB to glTF conversion if needed
+                # For now, just copy the GLB file and update the path
+                glb_dest = os.path.join(self.gltf_dir, "model.glb")
+                shutil.copy(self.input_file, glb_dest)
+                self.gltf_path = glb_dest
+            else:
+                # Copy the glTF file
+                shutil.copy(self.input_file, self.gltf_path)
+                
+                # Copy associated files (bin, textures)
+                input_dir = os.path.dirname(self.input_file)
+                input_basename = os.path.splitext(os.path.basename(self.input_file))[0]
+                
+                # Copy .bin file if it exists
+                bin_file = os.path.join(input_dir, f"{input_basename}.bin")
+                if os.path.exists(bin_file):
+                    shutil.copy(bin_file, os.path.join(self.gltf_dir, "model.bin"))
+                
+                # Copy texture files
+                for file in os.listdir(input_dir):
+                    if file.endswith(('.jpg', '.png', '.jpeg', '.webp')):
+                        shutil.copy(os.path.join(input_dir, file), os.path.join(self.gltf_dir, file))
+            
+            if self.verbose:
+                print(f"Successfully prepared glTF file: {self.gltf_path}")
+            
+            return True
+        except Exception as e:
+            print(f"Error preparing glTF file: {e}")
+            return False
     
     def convert_fbx_to_gltf(self):
         """
@@ -510,13 +581,13 @@ class FBX2Tiles:
     def convert(self):
         """Run the full conversion process."""
         if self.verbose:
-            print(f"Starting conversion of {self.input_file} to 3D Tiles")
+            print(f"Starting conversion of {self.input_file} ({self.input_type.upper()}) to 3D Tiles")
             print(f"Output directory: {self.output_dir}")
             print(f"Geographic coordinates: Lon={self.longitude}, Lat={self.latitude}, Height={self.height}")
         
-        # Convert FBX to glTF
-        if not self.convert_fbx_to_gltf():
-            print("Failed to convert FBX to glTF. Please try manual conversion.")
+        # Prepare glTF (either convert from FBX or copy existing glTF)
+        if not self.prepare_gltf():
+            print(f"Failed to prepare glTF from {self.input_type.upper()}.")
             return False
         
         # Convert glTF to 3D Tiles
@@ -536,8 +607,8 @@ class FBX2Tiles:
 
 def main():
     """Main function to run the converter from command line."""
-    parser = argparse.ArgumentParser(description='Convert FBX models to 3D Tiles format')
-    parser.add_argument('input_file', help='Path to input FBX file')
+    parser = argparse.ArgumentParser(description='Convert 3D models (FBX, glTF) to 3D Tiles format')
+    parser.add_argument('input_file', help='Path to input 3D model file (FBX, glTF, GLB)')
     parser.add_argument('output_dir', help='Directory to output 3D Tiles files')
     parser.add_argument('--lod-levels', type=int, default=3, help='Number of LOD levels to generate (default: 3)')
     parser.add_argument('--longitude', type=float, help='Longitude in degrees (WGS84)')
@@ -547,7 +618,7 @@ def main():
     
     args = parser.parse_args()
     
-    converter = FBX2Tiles(
+    converter = Model2Tiles(
         args.input_file, 
         args.output_dir, 
         args.lod_levels, 

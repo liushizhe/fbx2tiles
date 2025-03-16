@@ -26,21 +26,21 @@ pip install -r requirements.txt
 基本用法：
 
 ```bash
-python fbx2tiles.py 输入文件.fbx 输出目录
+python fbx2tiles.py 输入文件 输出目录
 ```
 
 高级选项：
 
 ```bash
-python fbx2tiles.py 输入文件.fbx 输出目录 --longitude 120 --latitude 39 --height 0 --verbose
+python fbx2tiles.py 输入文件 输出目录 --longitude 120 --latitude 39 --height 0 --verbose
 ```
 
 参数说明：
-- `输入文件.fbx`：要转换的FBX文件路径
+- `输入文件`：要转换的3D模型文件路径（支持FBX、glTF、GLB格式）
 - `输出目录`：3D Tiles输出目录
-- logitude：模型经度
-- latitude：模型纬度
-- height：模型高度
+- `--longitude`：模型经度（WGS84）
+- `--latitude`：模型纬度（WGS84）
+- `--height`：模型高度（米）
 - `--verbose`：显示详细输出信息
 
 ## 输出文件
