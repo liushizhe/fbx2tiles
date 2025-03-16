@@ -9,8 +9,11 @@
 - 支持LOD（Level of Detail）
 - 支持地理坐标定位
 - 简单易用的命令行接口
+- 提供Windows可执行文件(.exe)，无需安装Python
 
 ## 安装
+
+### 方法一：使用Python脚本（适用于所有平台）
 
 1. 确保已安装Python 3.7或更高版本
 2. 安装所需依赖：
@@ -23,7 +26,17 @@ pip install -r requirements.txt
    - 从 [FBX2glTF GitHub仓库](https://github.com/facebookincubator/FBX2glTF/releases) 下载最新版本
    - 将FBX2glTF可执行文件添加到系统PATH环境变量中
 
+### 方法二：使用Windows可执行文件
+
+1. 下载最新的发布版本中的`model2tiles.exe`文件
+2. 无需安装Python或其他依赖项
+3. 确保FBX2glTF工具可用（如果需要转换FBX文件）:
+   - 从 [FBX2glTF GitHub仓库](https://github.com/facebookincubator/FBX2glTF/releases) 下载最新版本
+   - 将FBX2glTF可执行文件添加到系统PATH环境变量中
+
 ## 使用方法
+
+### 使用Python脚本
 
 基本用法：
 
@@ -35,6 +48,20 @@ python fbx2tiles.py 输入文件 输出目录
 
 ```bash
 python fbx2tiles.py 输入文件 输出目录 --longitude 120 --latitude 39 --height 0 --verbose
+```
+
+### 使用Windows可执行文件
+
+基本用法：
+
+```bash
+model2tiles.exe 输入文件 输出目录
+```
+
+高级选项：
+
+```bash
+model2tiles.exe 输入文件 输出目录 --longitude 120 --latitude 39 --height 0 --verbose
 ```
 
 参数说明：
@@ -70,22 +97,50 @@ python fbx2tiles.py 输入文件 输出目录 --longitude 120 --latitude 39 --he
 
 ## 示例
 
+使用Python脚本：
 ```bash
 python fbx2tiles.py models/building.fbx output/building_tiles --verbose
 ```
+
+使用Windows可执行文件：
+```bash
+model2tiles.exe models/building.fbx output/building_tiles --verbose
+```
+
+## 生成Windows可执行文件
+
+如果您想自己生成Windows可执行文件，请按照以下步骤操作：
+
+1. 安装PyInstaller：
+```bash
+pip install pyinstaller
+```
+
+2. 确保PyInstaller已添加到环境变量中
+
+3. 运行构建脚本：
+```bash
+python build_exe.py
+```
+
+4. 生成的可执行文件将位于以下目录：
+   - `dist/model2tiles.exe`：可执行文件
+   - `release/`：包含可执行文件和README的发布目录
+
+您可以将`release`目录中的文件分发给其他用户，他们无需安装Python即可运行该工具。
 
 ## 注意事项
 
 - 确保安装了所有依赖项
 - FBX2glTF工具是必需的，请确保正确安装
 - 转换过程中会创建临时文件，完成后会自动清理
+- Windows可执行文件(.exe)仅适用于Windows系统
 
 ## 依赖项
 
 - numpy
 - pygltflib
-- trimesh
+- py3dtiles
 - python-dateutil
 - requests
 - pillow
-- pybind11
